@@ -10,21 +10,24 @@ while getopts ":a:r:b:p:s:g:h" o; do case "${o}" in
 	g) gpgfile=${OPTARG} ;;
 	*) printf "Invalid option: -%s\\n" "$OPTARG" && exit 1 ;;
 esac done
+username="romariorobby"
+reponame="rarbstest"
+branch="master"
+[ -z "$chrootfile" ] && chrootfile="https://raw.githubusercontent.com/$username/$reponame/$branch/chroot"
+[ -z "$prechrootfile" ] && prechroot="https://raw.githubusercontent.com/$username/$reponame/$branch/prechroot"
 
-[ -z "$chrootfile" ] && chrootfile="https://raw.githubusercontent.com/romariorobby/rarbs/master/opt/chroot.sh"
-[ -z "$prechrootfile" ] && prechroot="https://raw.githubusercontent.com/romariorobby/rarbs/master/opt/prechroot.sh"
-
-[ -z "$dotfilesrepo" ] && dotfilesrepo="https://github.com/romariorobby/dotfiles.git"
-[ -z "$sshdotfilesrepo" ] && sshdotfilesrepo="git@github.com:romariorobby/dotfiles.git"
+[ -z "$dotfilesrepo" ] && dotfilesrepo="https://github.com/$username/dotfiles.git"
+[ -z "$sshdotfilesrepo" ] && sshdotfilesrepo="git@github.com:$username/dotfiles.git"
 # TODO: Update this when got merge with master
-[ -z "$progsfile" ] && progsfile="https://raw.githubusercontent.com/romariorobby/rarbs/master/progs.csv"
-[ -z "$brewtapfile" ] && brewtapfile="https://raw.githubusercontent.com/romariorobby/rarbs/master/opt/brewtap.csv"
+[ -z "$progsfile" ] && progsfile="https://raw.githubusercontent.com/$username/$reponame/$branch/progs.csv"
+[ -z "$brewtapfile" ] && brewtapfile="https://raw.githubusercontent.com/$username/$reponame/$branch/brewtap.csv"
 [ -z "$aurhelper" ] && aurhelper="paru"
 # var for Password Manager (Bitwarden,pass)
 [ -z "$is_secret" ] && is_secret=""
-[ -z "$gpgfile" ] && gpgfile="https://raw.githubusercontent.com/romariorobby/dotfiles/main/dot_local/share/vault/encrypted_aqs.tar.gz.asc"
+[ -z "$gpgfile" ] && gpgfile="https://raw.githubusercontent.com/$username/dotfiles/main/dot_local/share/vault/encrypted_aqs.tar.gz.asc"
 # Source where pwd script is running
 DIRS="$(dirname "$0")"
+pauseins="sleep 5s"
 welcomemsg() { \
 	dialog --title "Welcome!" --msgbox "Lazy Bootstrap\\n\\nThis script will automatically install a fully-featured $OS desktop.\\n\\n-Romario" 10 60
     [[ "$distro" == "Arch Linux" ]] && \
@@ -339,7 +342,7 @@ userOS(){
 # INSTALL
 #
 installpkg() {
-	if [[ -f "/etc/arch-release" ||  -f "/etc/artix-release" ]]; then
+	if [[ "$distro" == "Arch Linux" ]]; then
 		pacman --noconfirm --needed -S "$1" >/dev/null 2>&1
 	elif [ "$OS" == "macOS" ]; then
 		brew install "$1" >/dev/null 2>&1
@@ -347,7 +350,7 @@ installpkg() {
 
 brewtap(){ \
     echo "$tapinstalled" | grep -q "^$1$" && \
-        dialog --title "RARBS Homebrew Repositories" --infobox "\`$1\` repositories already added to Homebrew" 5 70 && sleep 0.1s && return 1
+        dialog --title "RARBS Homebrew Repositories" --infobox "\`$1\` repositories already added to Homebrew" 5 70 && $pauseins && return 1
 	brew tap "$1" >/dev/null 2>&1
 }
 
@@ -358,7 +361,7 @@ maintap() {
 
 maininstall() {
 	echo "$pacinstalled" | grep -q "^$1$" && \
-        dialog --title "RARBS Installation" --infobox "\`$1\` already installed from the package manager." 5 70 && sleep 0.1s && return 1
+        dialog --title "RARBS Installation" --infobox "\`$1\` already installed from the package manager." 5 70 && $pauseins && return 1
 	dialog --title "RARBS Installation" --infobox "Installing \`$1\` ($n of $total). $1 $2" 5 70
 	installpkg "$1" ;}
 
@@ -561,6 +564,8 @@ filtertap(){ \
 	esac ;}
 
 filterprogs(){ \
+    # TODO: Make Read from org format del/IFS="|"
+	# ([ -f "$progsfile" ] && cp "$progsfile" /tmp/progs.csv) || curl -lLs "$progsfile" | sed '/^-\|*\|#/d;/^|-/d' > /tmp/progs.csv
 	if [ "$OS" == "macOS" ]; then
 		case $tpick in
 			"B") ([ -f "$progsfile" ] && grep "^[HPN]," $progsfile > /tmp/progs.csv ) || curl -Ls "$progsfile" | grep "^[HPN]," > /tmp/progs.csv ;;
@@ -577,7 +582,6 @@ filterprogs(){ \
 
 installationtaploop(){ \
 	filtertap
-	tapinstalled=$(brew tap)
 	totaltap=$(wc -l < /tmp/brewtap.csv)
 	while IFS=, read -r tag source comment; do
 		s=$((s+1))
@@ -586,17 +590,27 @@ installationtaploop(){ \
 			*) maintap "$source" "$comment" ;;
 		esac
 	done < /tmp/brewtap.csv ;}
-
-# TODO: Make Read from org file del/IFS="|"
-installationloop() { \
-	filterprogs
-	[ "$OS" == "macOS" ] && installationtaploop
-	# ([ -f "$progsfile" ] && cp "$progsfile" /tmp/progs.csv) || curl -lLs "$progsfile" | sed '/^-\|*\|#/d;/^|-/d' > /tmp/progs.csv
-	total=$(wc -l < /tmp/progs.csv)
-	[[ "$distro" == "Arch Linux" ]] && aurinstalled=$(pacman -Qqm) && pacinstalled=$(pacman -Qq)
-	[ "$OS" == "macOS" ] && pacinstalled=$(brew list | uniq)
+listpkg(){
+	if [[ "$distro" == "Arch Linux" ]]; then
+        aurinstalled=$(pacman -Qqm)
+        pacinstalled=$(pacman -Qq)
+    elif [ "$OS" == "macOS" ]; then
+	    tapinstalled=$(brew tap)
+        pacinstalled=$(brew list | uniq)
+    fi
 	npminstalled=$(npm ls -g | awk '{print $2}' | sed 's/\@.*//; /^$/d')
 	pipinstalled=$(pip list | awk '{print $1}')
+
+}
+installationloop() { \
+	filterprogs
+    listpkg
+	[ "$OS" == "macOS" ] && installationtaploop
+	total=$(wc -l < /tmp/progs.csv)
+	# [[ "$distro" == "Arch Linux" ]] && aurinstalled=$(pacman -Qqm) && pacinstalled=$(pacman -Qq)
+	# [ "$OS" == "macOS" ] && pacinstalled=$(brew list | uniq)
+	# npminstalled=$(npm ls -g | awk '{print $2}' | sed 's/\@.*//; /^$/d')
+	# pipinstalled=$(pip list | awk '{print $1}')
 	while IFS=, read -r tag program comment; do
 		n=$((n+1))
 		echo "$comment" | grep -q "^\".*\"$" && comment="$(echo "$comment" | sed "s/\(^\"\|\"$\)//g")"
@@ -635,9 +649,9 @@ main(){
     installationloop
     [ "$mpick" == "R" ] && exit
     # TODO: Working on this
-    passmgr
-    dotinstall
-    postconf
+    # passmgr
+    # dotinstall
+    # postconf
     ###################
     #chassisconf
     finalize
