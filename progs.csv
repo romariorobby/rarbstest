@@ -51,7 +51,7 @@ GX,git@github.com:romariorobby/sucklessaqs.git, "[SSH] is my custom build of AIO
 GX,https://github.com/romariorobby/dotfiles.git, "[HTTPS] is my custom Dotfiles"
 GX,https://github.com/romariorobby/dwm.git, "[HTTPS] is my custom build of AIO suckless"
 GX,https://github.com/romariorobby/sucklessaqs.git, "[HTTPS] is my custom build of AIO suckless"
-H,--HEAD neovim, "a tidier vim with some useful features [DEV VERSION]"
+H,neovim, "a tidier vim with some useful features"
 H,android-platform-tools, "is Wrapper Android SDK (ADB)"
 H,brave-browser, "is an elegant browser with built-in adblocking tor and other features."
 H,browserpass, "is a Simple Unix Password Manager"
