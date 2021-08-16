@@ -1,13 +1,16 @@
 #!/bin/sh
-
+info(){
+    dialog --title "$1" --infobox "$2" 5 70
+} 
 set -euo pipefail
 
-echo "Activating SKHD services..."
-[ -x "$(command -v "skhd")" ] && brew services start skhd
+info "Post Configuration" "Activating SKHD"
+[ -x "$(command -v "skhd")" ] && brew services start skhd || brew services restart skhd
+[ $? == 0 ] &&  info "Post Configuration" "SKHD Activated"
 
-echo "Set Default style to Dark Mode"
+info "Post Configuration" "Set Default style to Dark Mode"
 defaults write NSGlobalDomain AppleInterfaceStyle Dark
-echo "Set Default Locale to en_US"
+info "Post Configuration" "Set Default Locale to en_US"
 defaults write NSGlobalDomain AppleLocale en_US
 
 echo ""

@@ -1,0 +1,40 @@
+#+TITLE: Board Scratch
+* Supported OS:
+  - macOS
+  - Linux :
+    - Arch Linux Variant
+* Bootstrap Archlinux or other Distros with support CLI installer
+  - Prechroot
+  - Chroot
+  - postchroot (rarbs) (Installing all pkg & setting up)
+
+|-----------------------------------------------+-------+------+--------+---------------|
+| Feature                                       | macOS | Arch | Ubuntu | Windows (WSL) |
+|-----------------------------------------------+-------+------+--------+---------------|
+| Prechroot                                     | [-]   | [?]  |        |               |
+| Chroot                                        | [-]   | [?]  |        |               |
+| Post Chroot / Bootstrap Packages and Settings | [X]   | [X]  |        |               |
+|-----------------------------------------------+-------+------+--------+---------------|
+|                                               |       |      |        |               |
+
+* Tasks
+** TODO Setup Password Manager,GPG, and Chezmoi
+- [-] Bitwarden [1/2]
+    - [X] macOS
+    - [ ] Arch Linux
+- [-] Pass Unix [1/2]
+    - [X] macOS
+    - [ ] Arch Linux
+- [-] GPG [1/2]
+    - [X] macOS
+    - [ ] Arch Linux
+- [-] Chezmoi [1/2]
+    - [X] macOS
+    - [ ] Arch Linux
+** TODO Add post Install or Automate Configuration files..
+
+* Walkthrough
+- Init
+- Picking()
+- Installationloop
+- Configuration
