@@ -163,9 +163,6 @@ mkdir -p /mnt/home
 mount $(cat drivepath)4 /mnt/home
 }
 
-INSTRAP=""
-EXPKG=""
-
 checkdaemon() {
     if [ "$archtype" = "X" ]; then
         pidof runit && echo "Daemon Using Runit" && EXPKG="runit elogind-runit"
@@ -186,7 +183,7 @@ fi
 lsblk && sleep 10s
 echo "Do you want to continue ? [y/n]"
 read -r confirm
-echo "$confirm" | grep -iq "^y$" && continue || exit 
+echo "$confirm" | grep -iq "^y$" || exit 
 pacman -Q artix-keyring >/dev/null 2>&1 && pacman --noconfirm -S artix-keyring >/dev/null 2>&1
 pacman -Sy --noconfirm archlinux-keyring
 # FIXME grep -oi "intel" PROC="intel-ucode"?
@@ -244,9 +241,9 @@ else
 fi
 
 if [ "$archtype" = "A" ]; then
-    curl $chrootUrl > /mnt/chroot.sh && arch-chroot /mnt bash chroot.sh && rm /mnt/chroot.sh
+    curl $chrootUrl > /mnt/chroot && arch-chroot /mnt bash chroot && rm /mnt/chroot
 else
-    curl $chrootUrl > /mnt/chroot.sh && artix-chroot /mnt bash chroot.sh && rm /mnt/chroot.sh
+    curl $chrootUrl > /mnt/chroot && artix-chroot /mnt bash chroot && rm /mnt/chroot
 fi
 
 dialog --defaultno --title "final qs" --yesno "reboot computer?"  5 30 && reboot

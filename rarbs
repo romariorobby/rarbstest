@@ -133,7 +133,7 @@ modepick(){ \
 
     case $mpick in
         "I") 
-            dialog --defaultno --title "PRE-CHROOT" --yesno "Go to Pre-chroot?"  6 30 && curl $prechrootfile > prechroot.sh && bash prechroot.sh || modepick
+            dialog --defaultno --title "PRE-CHROOT" --yesno "Go to Pre-chroot?"  6 30 && curl $prechrootfile > prechroot && bash prechroot || modepick
             exit
             ;;
     esac ;}
