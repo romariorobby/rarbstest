@@ -32,7 +32,9 @@
     - [X] macOS
     - [ ] Arch Linux
 ** TODO Add post Install or Automate Configuration files..
-
+*** Post Install
+- [ ] Neovim
+- [ ] Emacs
 * Walkthrough
 - Init
 - Picking()
