@@ -2,7 +2,9 @@
 * Supported OS:
   - macOS
   - Linux :
-    - Arch Linux Variant
+    - Arch Linux Derivatives:
+	  - [X] Vanilla
+	  - [X] Manjaro
 * Bootstrap Archlinux or other Distros with support CLI installer
   - Prechroot
   - Chroot

@@ -14,16 +14,41 @@ DIRS="$(dirname "$0")"
 [ -z "$gpgprivrepo" ] && gpgprivrepo="https://raw.githubusercontent.com/$username/dotfiles/main/dot_local/share/vault/encrypted_gtok.asc"
 
 [ -z "$aurhelper" ] && aurhelper="paru"
-
-welcomemsg() { \
-	dialog --title "Welcome!" --msgbox "Lazy Bootstrap\\n\\nThis script will automatically install a fully-featured $OS desktop.\\n\\n-Romario" 10 60
-    [[ "$distro" == "Arch Linux" ]] && \
-        dialog --colors --title "Important Note!" --yes-label "All ready!" --no-label "Return..." --yesno "If you running GNU/LINUX(Arch), Be sure the computer you are using has current pacman updates and refreshed Arch keyrings.\\n\\nIf it does not, the installation of some programs might fail." 8 70
-	}
+# 
 error() { clear; printf "ERROR:\\n%s\\n" "$1" >&2; exit 1;}
+msg(){ \
+	local OPTIND
+	while getopts ":m:c:q:i:p:c:I" o; do
+		case "${o}" in
+			# @param $4 Height Width
+			m) dialog --title "$2" --msgbox "$3" $4;;
+			i) dialog --infobox "$2" $3;;
+			I) dialog --inputbox "$2" $3;;
+			p) dialog --no-cancel --passwordbox "$2" $3;;
+			c) dialog --colors --title "$2" --msgbox "$3" $4 ;;
+			q) [[ -z "$3" && -z "$4" ]] && dialog --colors --title "$2" --yes-label "YES" --no-label "NO" --yesno "$5" $6 ||
+				dialog --colors --title "$2" --yes-label "$3" --no-label "$4" --yesno "$5" $6 ;;
+			*) error "Type" ;;
+			esac
+		done
+		shift $((OPTIND-1))
+}
+welcomemsg() { \
+	dialog --title "Welcome!" \
+		   --msgbox "Lazy Bootstrap\\n\\nThis script will automatically install a fully-featured $OS desktop.\\n\\n-Romario" 10 60
+    [[ "$OS" == "Linux" || "$OS" == "GNU*" ]] && \
+        dialog --colors \
+			   --title "Important Note!" \
+			   --yes-label "All ready!" \
+			   --no-label "Return..." \
+			   --yesno "If you running GNU/LINUX - $distro, Be sure the computer you are using has current package manager updates and refreshed keyrings.\\n\\nIf it does not, the installation of some programs might fail." 8 70
+	}
 
 preinstallmsg() { \
-	dialog --title "Let's get this party started!" --yes-label "Let's go!" --no-label "No, nevermind!" --yesno "The rest of the installation will now be totally automated, so you can sit back and relax.\\n\\nIt will take some time, but when done, you can relax even more with your complete system.\\n\\nNow just press <Let's go!> and the system will begin installation!" 13 60 || { clear; exit 1; }
+	dialog --title "Let's get this party started!" \
+		   --yes-label "Let's go!" \
+		   --no-label "No, nevermind!" \
+		   --yesno "The rest of the installation will now be totally automated, so you can sit back and relax.\\n\\nIt will take some time, but when done, you can relax even more with your complete system.\\n\\nNow just press <Let's go!> and the system will begin installation!" 13 60 || { clear; exit 1; }
 	}
 
 newperms() { # Set special sudoers settings for install (or after).
@@ -98,32 +123,32 @@ getChassis(){ \
     esac
 }
 
-welcomemsg() { \
-	dialog --title "Welcome!" --msgbox "Lazy Bootstrap\\n\\nThis script will automatically install a fully-featured $OS desktop.\\n\\n-Romario" 10 60
-    [[ "$distro" == "Arch Linux" ]] && \
-        dialog --colors --title "Important Note!" --yes-label "All ready!" --no-label "Return..." --yesno "If you running GNU/LINUX(Arch), Be sure the computer you are using has current pacman updates and refreshed Arch keyrings.\\n\\nIf it does not, the installation of some programs might fail." 8 70
-}
-
 finalize(){ \
 	dialog --infobox "Preparing welcome message..." 4 50
 	if [ "$OS" == "macOS" ]; then
-		dialog --title "All done, $OS!" --msgbox "Congrats, $name! Provided there were no hidden errors, the script completed successfully and all the programs and configuration files should be in place.\\n\\n Some configurations needed to restart .\\n\\n.t Romario" 12 80
+		dialog --title "All done, $OS!" \
+			   --msgbox "Congrats, $name! Provided there were no hidden errors, the script completed successfully and all the programs and configuration files should be in place.\\n\\n Some configurations needed to restart .\\n\\n.t Romario" 12 80
 	else
-		dialog --title "All done, $OS!" --msgbox "Congrats, $name! Provided there were no hidden errors, the script completed successfully and all the programs and configuration files should be in place.\\n\\nTo run the new graphical environment, log out and log back in as your new user, then run the command \"startx\" to start the graphical environment (it will start automatically in tty1).\\n\\n.t Romario" 12 80
+		dialog --title "All done, $OS!" \
+			   --msgbox "Congrats, $name! Provided there were no hidden errors, the script completed successfully and all the programs and configuration files should be in place.\\n\\nTo run the new graphical environment, log out and log back in as your new user, then run the command \"startx\" to start the graphical environment (it will start automatically in tty1).\\n\\n.t Romario" 12 80
 	fi
 }
 
 ### Picking
 modepick(){ \
-	if [[ "$distro" == "Arch Linux" ||  -f "/etc/artix-release" ]]; then
-        mpick=$(dialog --no-cancel --backtitle "RARBS Type Picking" --radiolist "Select RARBS Mode: " 10 80 3 \
-                I "Installer (Archlinux)" off \
-                R "(Re)install (Packages)" on \
-                P "Post Install" on 3>&1 1>&2 2>&3 3>&1)
+	if [[ "$distro" == "Arch Linux" || -f "/etc/artix-release" ]]; then
+        mpick=$(dialog --no-cancel \
+			           --backtitle "RARBS Type Picking" \
+					   --radiolist "Select RARBS Mode: " 10 80 3 \
+					   I "Installer (Archlinux)" off \
+					   R "(Re)install (Packages)" on \
+					   P "Post Install" on 3>&1 1>&2 2>&3 3>&1)
     else
-        mpick=$(dialog --no-cancel --backtitle "RARBS Type Picking" --radiolist "Select RARBS Mode: " 10 80 3 \
-                R "(Re)install (Packages)" on \
-                P "Post Install" on 3>&1 1>&2 2>&3 3>&1)
+        mpick=$(dialog --no-cancel \
+					   --backtitle "RARBS Type Picking" \
+					   --radiolist "Select RARBS Mode: " 10 80 3 \
+					   R "(Re)install (Packages)" on \
+					   P "Post Install" on 3>&1 1>&2 2>&3 3>&1)
     fi
 	case $mpick in
 		"I") namempick="Installer" ;;
@@ -133,7 +158,9 @@ modepick(){ \
 
     case $mpick in
         "I") 
-            dialog --defaultno --title "PRE-CHROOT" --yesno "Go to Pre-chroot?"  6 30 && curl $prechrootfile > prechroot && bash prechroot || modepick
+            dialog --defaultno \
+				   --title "PRE-CHROOT" \
+				   --yesno "Go to Pre-chroot?"  6 30 && curl $prechrootfile > prechroot && bash prechroot || modepick
             exit
             ;;
     esac ;}
@@ -176,10 +203,12 @@ wmdepick() { \
 }
 
 typepick() { \
-	tpick=$(dialog --no-cancel --backtitle "RARBS Type Picking" --radiolist "Select RARBS Type: " 10 60 3 \
-		B "Base Only" on \
-		M "Minimal" on \
-		F "Full" off 3>&1 1>&2 2>&3 3>&1)
+	tpick=$(dialog --no-cancel \
+	               --backtitle "RARBS Type Picking" \
+				   --radiolist "Select RARBS Type: " 10 60 3 \
+				   B "Base Only" on \
+				   M "Minimal" on \
+				   F "Full" off 3>&1 1>&2 2>&3 3>&1)
 	case $tpick in
 		"B") nametpick="Base" ;;
 		"M") nametpick="Minimal" ;;
@@ -321,7 +350,7 @@ installreq(){
 reqLinux(){
 	newperms "%wheel ALL=(ALL) NOPASSWD: ALL"
     case $distro in
-        "Arch Linux")
+        "Arch Linux"|"Manjaro Linux")
                 refreshkeys 
                 manualinstall $aurhelper-bin || manualinstall $aurhelper || error "Failed to install $aurhelper (AUR helper)."
                 ntpdate 0.id.pool.ntp.org >/dev/null 2>&1
@@ -339,7 +368,8 @@ installpkg() {
         "macOS") brew install "$1" >/dev/null 2>&1 ;;
         "Linux")
             case "$distro" in
-                "Arch Linux") pacman --noconfirm --needed -S "$1" >/dev/null 2>&1 ;;
+                "Arch Linux"|"Manjaro Linux")
+					pacman --noconfirm --needed -S "$1" >/dev/null 2>&1 ;;
             esac
             ;;
     esac ;}
@@ -358,7 +388,13 @@ maintap() {
 
 maininstall() {
 	echo "$pacinstalled" | grep -q "^$1$" && \
-        dialog --colors --title "RARBS Installation" --infobox "\Zb\`$1\`\Zn \Z1already installed\Zn from the package manager ($n of $total). \Z1Skipping...\Zn" 5 70 && $pauseins && return 1
+		dialog --colors \
+			   --title "RARBS Installation" \
+			   --infobox "\Zb\`$1\`\Zn \Z1already installed\Zn from the package manager ($n of $total). \Z1Skipping...\Zn" 5 70 && $pauseins && return 1 ||
+	echo "$manualinstalled" | grep -iq "^$1" && \ 
+		dialog --colors \
+			   --title "RARBS Installation" \
+			   --infobox "\Zb\`$1\`\Zn \Z1already installed\Zn in /Applications ($n of $total). \Z1Skipping...\Zn" 5 70 && $pauseins && return 1
 	dialog --colors --title "RARBS Installation" --infobox "Installing \Zb\`$1\`\Zn ($n of $total). $1 $2" 5 70
 	installpkg "$1" ;}
 
@@ -429,6 +465,7 @@ decryptgpg(){
 installgpg(){ 
     dialog --infobox "Downloading GPG ..." 4 60
     [ -x "$(command -v "gpg")" ] || installpkg gnupg
+	[ -f "$HOME/.gnupg/trustdb.gpg" ] && return
     decryptgpg
     while ! [ "$?" = 0 ]; do
         dialog --infobox "Error Decrypting GPG. retry..." 4 60
@@ -477,7 +514,7 @@ filterprogs(){ \
             ;;
         "Linux") 
             case "$distro" in
-                "Arch Linux")
+                "Arch Linux"|"Manjaro Linux")
                     case "$tpick" in
                         "B") ([ -f "$progsfile" ] && grep "^[AMGPN]," "$progsfile" > /tmp/progs.csv) || curl -Ls "$progsfile" | grep "^[AMGPN]," > /tmp/progs.csv ;;
                         "M") ([ -f "$progsfile" ] && grep "^[AM],\|MM,\|AM,\|PM,\|NM,\|GM," "$progsfile" > /tmp/progs.csv) || curl -Ls "$progsfile" | grep "^[AM],\|MM,\|AM,\|PM,\|NM,\|GM," > /tmp/progs.csv ;;
@@ -501,7 +538,7 @@ listpkg(){
     case "$OS" in
         "Linux") 
                 case "$distro" in
-                    "Arch Linux") 
+                    "Arch Linux"|"Manjaro Linux") 
                             aurinstalled=$(pacman -Qqm)
                             pacinstalled=$(pacman -Qq)
                             ;;
@@ -509,6 +546,7 @@ listpkg(){
                 ;;
         "macOS")
                 tapinstalled=$(brew tap)
+				manualinstalled=$(ls /Applications | uniq)
                 #TODO: This not detected /Applications/
                 pacinstalled=$(brew list | uniq)
                 ;;
@@ -633,6 +671,10 @@ getUname(){
     fi
 }
 getgpg(){
+	if [ $mpick == "R" ]; then
+		[ -f "$HOME/.gnupg/trustdb.gpg" ] && return
+	fi
+
 	gpgpass1=$(dialog --no-cancel --passwordbox "Enter a password for gpg." 10 60 3>&1 1>&2 2>&3 3>&1)
 	gpgpass2=$(dialog --no-cancel --passwordbox "Retype password." 10 60 3>&1 1>&2 2>&3 3>&1)
 	while ! [ "$gpgpass1" = "$gpgpass2" ]; do
@@ -711,7 +753,6 @@ initsetup(){
     installpreq
     welcomemsg
     userpick
-    installreq
 }
 
 picking(){
@@ -736,6 +777,7 @@ dummy(){
 main(){
     initsetup
     picking
+    installreq
     installationloop
     #configuration
     finalize
